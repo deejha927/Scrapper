@@ -103,9 +103,13 @@
   </body>
 
   <script>
+    var host = window.location.hostname;
     //function calls api for scrapping
     function scrapper(data) {
       var url = "http://localhost:8000/scrap/";
+      if (host !== "localhost") {
+        url = "http://deejha.pythonanywhere.com/scrap/";
+      }
       return fetch(url, {
         method: "POST",
         mode: "no-cors",

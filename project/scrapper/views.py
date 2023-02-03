@@ -50,25 +50,25 @@ def scrapperData(url):
 @api_view(["POST"])
 def scrapperUrlData(request):
     data = request.data
-    try:
-        scarper = scrapperData(data["url"])
-        price = None
-        if scarper["price"]:
-            price = scarper["price"].split("₹")[1].replace(",", "")
-        with transaction.atomic():
-            createProduct = product.objects.create(
-                description=scarper["description"],
-                title=scarper["title"],
-                size=scarper["size"],
-                url=data["url"],
-                price=price,
-            )
-            imagesList = []
-            for val in scarper["imageUrl"]:
-                productImage = images(product=createProduct, image=val)
-                imagesList.append(productImage)
-            if imagesList:
-                images.objects.bulk_create(imagesList)
-        return Response({"message": "Url Scrapped Succesfully", "state": True})
-    except:
-        return Response({"message": "Something went wrong", "state": False})
+    # try:
+    scarper = scrapperData(data["url"])
+    price = None
+    if scarper["price"]:
+        price = scarper["price"].split("₹")[1].replace(",", "")
+    with transaction.atomic():
+        createProduct = product.objects.create(
+            description=scarper["description"],
+            title=scarper["title"],
+            size=scarper["size"],
+            url=data["url"],
+            price=price,
+        )
+        imagesList = []
+        for val in scarper["imageUrl"]:
+            productImage = images(product=createProduct, image=val)
+            imagesList.append(productImage)
+        if imagesList:
+            images.objects.bulk_create(imagesList)
+    return Response({"message": "Url Scrapped Succesfully", "state": True})
+    # except:
+    #     return Response({"message": "Something went wrong", "state": False})

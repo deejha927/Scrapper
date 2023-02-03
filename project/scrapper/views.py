@@ -21,7 +21,11 @@ def textOrNone(element):
 
 # scarpes given url and return data in dict form
 def scrapperData(url):
-    page = requests.get(url)
+    headers = {
+        "Accept-Language": "en-US,en;q=0.5",
+        "User-Agent": "Defined",
+    }
+    page = requests.get(url, headers=headers)
     soup = BeautifulSoup(page.content, "html.parser")
     category = soup.find_all("a", class_="_2whKao")
     title = soup.find("span", class_="B_NuCI")

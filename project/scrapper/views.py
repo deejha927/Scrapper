@@ -1,10 +1,14 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from celery.utils.log import get_task_logger
 from django.shortcuts import render
+from project.celery import app
 from django.db import transaction
 from bs4 import BeautifulSoup
 from .models import *
+from .task import *
 import requests
+import celery
 
 # Create your views here.
 def home(request):
@@ -54,25 +58,31 @@ def scrapperData(url):
 @api_view(["POST"])
 def scrapperUrlData(request):
     data = request.data
-    # try:
-    scarper = scrapperData(data["url"])
-    price = None
-    if scarper["price"]:
-        price = scarper["price"].split("₹")[1].replace(",", "")
-    with transaction.atomic():
-        createProduct = product.objects.create(
-            description=scarper["description"],
-            title=scarper["title"],
-            size=scarper["size"],
-            url=data["url"],
-            price=price,
-        )
-        imagesList = []
-        for val in scarper["imageUrl"]:
-            productImage = images(product=createProduct, image=val)
-            imagesList.append(productImage)
-        if imagesList:
-            images.objects.bulk_create(imagesList)
-    return Response({"message": "Url Scrapped Succesfully", "state": True})
-    # except:
-    #     return Response({"message": "Something went wrong", "state": False})
+    try:
+        scarper = scrapperData(data["url"])
+        price = None
+        if scarper["price"]:
+            price = scarper["price"].split("₹")[1].replace(",", "")
+        with transaction.atomic():
+            createProduct = product.objects.create(
+                description=scarper["description"],
+                title=scarper["title"],
+                size=scarper["size"],
+                url=data["url"],
+                price=price,
+            )
+            imagesList = []
+            for val in scarper["imageUrl"]:
+                productImage = images(product=createProduct, image=val)
+                imagesList.append(productImage)
+            if imagesList:
+                images.objects.bulk_create(imagesList)
+        return Response({"message": "Url Scrapped Succesfully", "state": True})
+    except:
+        return Response({"message": "Something went wrong", "state": False})
+
+
+@api_view(["GET"])
+def celeryWorker(request):
+    testingCelery.delay()
+    return Response("works")
